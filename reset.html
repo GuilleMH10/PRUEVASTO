@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Restablecer contraseña</title>
+</head>
+<body>
+
+<h2>Nueva contraseña</h2>
+
+<input type="password" id="newPass" placeholder="Nueva contraseña">
+
+<button onclick="resetPassword()">Guardar</button>
+
+<p id="msg"></p>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+const token = params.get("token");
+
+async function resetPassword(){
+
+const password = document.getElementById("newPass").value;
+
+const res = await fetch("http://localhost:3000/reset-password",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body: JSON.stringify({token,password})
+});
+
+const data = await res.json();
+
+document.getElementById("msg").textContent = data.msg;
+
+}
+
+</script>
+
+</body>
+</html>

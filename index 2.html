@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoStock</title>
+
+<style>
+
+/* ===== VARIABLES ===== */
+:root{
+--primary:#2e7d32;
+--secondary:#4caf50;
+--bg:#f4f7f6;
+--danger:#e53935;
+--warning:#fbc02d;
+--success:#43a047;
+}
+footer{
+border-top:4px solid #4caf50;
+}
+/* ===== GENERAL ===== */
+body{
+font-family:Segoe UI;
+margin:0;
+background:var(--bg);
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+/* ===== HEADER ===== */
+header{
+background:var(--primary);
+color:white;
+padding:15px;
+text-align:center;
+position:relative;
+}
+
+.menuBtn{
+font-size:24px;
+background:none;
+border:none;
+color:white;
+cursor:pointer;
+position:absolute;
+left:15px;
+top:12px;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+height:100%;
+width:0;
+position:fixed;
+top:0;
+left:0;
+background:var(--primary);
+overflow-x:hidden;
+transition:0.4s;
+padding-top:60px;
+z-index:1000;
+}
+
+.sidebar a{
+display:block;
+color:white;
+padding:15px;
+text-decoration:none;
+font-size:18px;
+cursor:pointer;
+}
+
+.sidebar a:hover{
+background:var(--secondary);
+}
+
+/* ===== BREADCRUMB ===== */
+.breadcrumb{
+background:#ddd;
+padding:8px;
+font-size:14px;
+}
+
+/* ===== CARDS ===== */
+.card{
+background:white;
+padding:20px;
+border-radius:8px;
+margin-bottom:20px;
+box-shadow:0 3px 6px rgba(0,0,0,0.1);
+}
+
+input,select,button{
+padding:10px;
+margin:5px;
+border-radius:4px;
+border:1px solid #ccc;
+}
+
+button{
+background:var(--secondary);
+color:white;
+border:none;
+cursor:pointer;
+font-weight:bold;
+}
+
+button:hover{
+background:var(--primary);
+}
+
+/* ===== TABLA ===== */
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+padding:10px;
+border-bottom:1px solid #ddd;
+}
+
+.status-pill{
+padding:5px 10px;
+border-radius:20px;
+color:white;
+font-size:12px;
+}
+
+.status-red{background:var(--danger);}
+.status-yellow{background:var(--warning); color:black;}
+.status-green{background:var(--success);}
+
+</style>
+</head>
+
+<body>
+
+<p id="userLabel" style="position:absolute;right:15px;top:15px;z-index:999;">
+
+</p>
+
+
+
+
+
+
+<!-- SIDEBAR -->
+<div id="sidebar" class="sidebar">
+
+<a onclick="navigate('home')">🏠 Inicio</a>
+<a onclick="navigate('inventory')">📦 Inventario</a>
+<a onclick="navigate('errorFake')">⚠ Probar Error</a>
+<a onclick="logout()">🚪 Cerrar sesión</a>
+
+</div>
+
+<header id="mainHeader" style="display:none; position:relative;">
+
+<button class="menuBtn" onclick="toggleMenu()">☰</button>
+<h1>EcoStock</h1>
+
+<p id="userLabel" style="position:absolute; right:15px; top:10px; margin:0;"></p>
+
+
+
+</header>
+
+
+<div class="breadcrumb" id="breadcrumb" style="display:none;">
+Inicio
+</div>
+
+<div class="container">
+
+<!-- LOGIN -->
+<section id="loginSection">
+
+<div class="card">
+<h2>Iniciar Sesión</h2>
+
+<input id="user" placeholder="Correo">
+<input id="pass" type="password" placeholder="Contraseña">
+
+
+
+
+<button onclick="login()">Ingresar</button>
+<p id="loginError" style="color:red;"></p>
+
+<hr>
+<h3>Registrarse</h3>
+
+<input id="emailReg" placeholder="Correo">
+<input id="passReg" type="password" placeholder="Contraseña">
+<input id="confirmPassReg" type="password" placeholder="Confirmar contraseña">
+
+
+
+
+<button onclick="register()">Crear cuenta</button>
+<p id="regMsg"></p>
+
+
+</div>
+
+</section>
+<p style="margin-top:10px;">
+<a href="#" onclick="mostrarRecuperar()">¿Olvidaste tu contraseña?</a>
+</p>
+
+<div id="recoverBox" style="display:none; margin-top:15px;">
+
+<input id="recoverEmail" placeholder="Ingresa tu correo">
+
+<button onclick="recoverPassword()">Recuperar contraseña</button>
+
+<p id="recoverMsg"></p>
+
+</div>
+
+
+<!-- HOME -->
+<section id="home" style="display:none;">
+
+<div class="card">
+<h2>Bienvenido</h2>
+<p>Gestión responsable de alimentos.</p>
+</div>
+
+</section>
+
+<!-- INVENTARIO -->
+<section id="inventory" style="display:none;">
+
+<div class="card">
+<h2>Registrar Producto</h2>
+
+<input type="text" id="prodName" placeholder="Producto">
+<input type="date" id="prodDate">
+
+<button onclick="addProduct()">Agregar</button>
+
+</div>
+
+<div class="card">
+<h2>Búsqueda</h2>
+
+<input type="text" id="searchInput" placeholder="Buscar producto">
+
+<select id="statusFilter">
+<option value="">Todos</option>
+<option value="Vencido">Vencido</option>
+<option value="Próximo a vencer">Próximo</option>
+<option value="Seguro">Seguro</option>
+</select>
+
+<button onclick="searchProduct()">Buscar</button>
+
+</div>
+
+<div class="card">
+<h2>Inventario</h2>
+
+<table>
+<thead>
+<tr>
+<th>Producto</th>
+<th>Fecha</th>
+<th>Estado</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody id="inventoryBody"></tbody>
+</table>
+
+</div>
+
+</section>
+
+<!-- ERROR -->
+<section id="errorFake" style="display:none;">
+<div class="card">
+<h2>Error 404</h2>
+<p>Sección inexistente</p>
+</div>
+</section>
+
+</div>
+
+<script>
+
+  function mostrarRecuperar(){
+document.getElementById("recoverBox").style.display="block";
+}
+async function recoverPassword(){
+
+const email = document.getElementById("recoverEmail").value;
+
+const res = await fetch("http://localhost:3000/forgot-password",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body: JSON.stringify({email})
+});
+
+const data = await res.json();
+
+document.getElementById("recoverMsg").textContent = data.msg;
+
+}
+
+
+async function register(){
+
+const email = document.getElementById("emailReg").value;
+const password = document.getElementById("passReg").value;
+const confirmPassword = document.getElementById("confirmPassReg").value;
+
+if(password !== confirmPassword){
+alert("Las contraseñas no coinciden");
+return;
+}
+
+try{
+
+const res = await fetch("http://localhost:3000/register",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body: JSON.stringify({email,password,confirmPassword})
+});
+
+const data = await res.json();
+
+if(res.ok){
+alert("Usuario registrado");
+}else{
+alert(data.msg);
+}
+
+}catch(error){
+console.log(error);
+alert("Error en registro");
+}
+}
+
+
+/*editar productos*/
+function editProduct(id,name,date){
+    
+document.getElementById("userLabel").textContent = "Usuario: Admin";
+
+
+prodName.value=name;
+prodDate.value=date;
+addBtn.onclick=()=>updateProduct(id);
+}
+
+/*backend*/
+async function filterStatus(){
+
+const status=statusFilter.value;
+const token=localStorage.getItem("token");
+
+const res=await fetch(`/products/filter/${status}`,{
+headers:{authorization:token}
+});
+
+const data=await res.json();
+renderInventory(data);
+}
+
+
+/* ===== LOGIN ===== */
+
+const USER="admin";
+const PASS="1234";
+
+async function login(){
+
+const email=document.getElementById("user").value;
+const password=document.getElementById("pass").value;
+
+try{
+
+const res = await fetch("http://localhost:3000/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({email,password})
+});
+
+const data = await res.json();
+
+if(res.ok){
+
+localStorage.setItem("token",data.token);
+localStorage.setItem("email", email);
+document.getElementById("userLabel").textContent = email;
+
+document.getElementById("loginSection").style.display="none";
+document.getElementById("mainHeader").style.display="block";
+document.getElementById("breadcrumb").style.display="block";
+
+navigate("home");
+
+}else{
+document.getElementById("loginError").textContent=data.msg;
+}
+
+}catch(error){
+console.log(error);
+alert("Error conectando al servidor");
+}
+
+}
+
+
+function logout(){
+localStorage.removeItem("token");
+location.reload();
+}
+
+
+/* ===== MENU ===== */
+
+function toggleMenu(){
+
+let menu=document.getElementById("sidebar");
+
+menu.style.width = menu.style.width==="250px" ? "0" : "250px";
+
+}
+
+/* Cerrar menú al hacer clic fuera */
+window.onclick=function(event){
+
+let sidebar=document.getElementById("sidebar");
+
+if(event.target.className!=="menuBtn" && !event.target.closest(".sidebar")){
+sidebar.style.width="0";
+}
+
+}
+
+/* ===== NAVEGACIÓN ===== */
+
+function navigate(section){
+
+toggleMenu();
+
+document.querySelectorAll("section").forEach(s=>s.style.display="none");
+
+let sec=document.getElementById(section);
+
+if(sec){
+sec.style.display="block";
+
+if(section === "inventory"){
+    loadInventory(); //  IMPORTANTE
+}
+
+breadcrumb.textContent = section==="home" ? "Inicio" : "Inicio > Inventario";
+}
+}
+
+/* ===== VALIDACIÓN ===== */
+
+function validateProduct(name,date){
+
+if(name.length<3){
+alert("Nombre inválido");
+return false;
+}
+
+if(!date){
+alert("Seleccione fecha");
+return false;
+}
+
+return true;
+}
+
+/* ===== INVENTARIO ===== */
+
+/* ===== INVENTARIO - AGREGAR PRODUCTO (CORREGIDO) ===== */
+async function addProduct(){
+    let name = prodName.value;
+    let date = prodDate.value;
+    name = name.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+    if(!validateProduct(name,date)) return;
+
+    let expiry = new Date(date);
+    let today = new Date();
+    today.setHours(0,0,0,0);
+    let diff = Math.ceil((expiry - today)/(1000*60*60*24));
+    let status = "Seguro";
+    if(diff < 0) status = "Vencido";
+    else if(diff <= 3) status = "Próximo a vencer";
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+        alert("Sesión expirada - Inicia sesión de nuevo");
+        return;
+    }
+
+    try {
+        const res = await fetch("http://localhost:3000/products", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "authorization": token   // ← ESTO ERA EL ERROR
+            },
+            body: JSON.stringify({ name, date, status })
+        });
+
+        if (res.status === 401 || res.status === 403) {
+            localStorage.removeItem("token");
+            alert("Sesión expirada");
+            return;
+        }
+
+        if (res.ok) {
+            loadInventory();
+            prodName.value = "";
+            prodDate.value = "";
+            alert("✅ Producto agregado correctamente");
+        } else {
+            const data = await res.json();
+            alert(data.msg || "Error al agregar producto");
+        }
+    } catch(error) {
+        console.log(error);
+        alert("Error conectando al servidor");
+    }
+}
+
+
+async function loadInventory(){
+
+const token = localStorage.getItem("token");
+
+if(!token){
+    alert("Sesión expirada");
+    logout();
+    return;
+}
+
+const res = await fetch("http://localhost:3000/products",{
+headers:{ authorization: token }
+});
+
+if(res.status===401 || res.status===403){
+alert("Sesión expirada");
+logout();
+return;
+}
+
+const inventory = await res.json();
+
+inventoryBody.innerHTML="";
+
+inventory.forEach((p)=>{
+
+let color="status-green";
+if(p.status==="Vencido") color="status-red";
+if(p.status==="Próximo a vencer") color="status-yellow";
+
+inventoryBody.innerHTML+=`
+<tr>
+<td>${p.name}</td>
+<td>${p.date}</td>
+<td><span class="status-pill ${color}">${p.status}</span></td>
+<td><button onclick="deleteProduct(${p.id})">Eliminar</button></td>
+</tr>
+`;
+
+});
+}
+
+
+async function deleteProduct(id){
+
+const token=localStorage.getItem("token");
+
+await fetch(`http://localhost:3000/products/${id}`,{
+method:"DELETE",
+headers:{ authorization: token }
+});
+
+loadInventory();
+}
+
+
+/* ===== AUTO LOGIN ===== */
+
+const token = localStorage.getItem("token");
+
+if(token){
+document.getElementById("loginSection").style.display="none";
+document.getElementById("mainHeader").style.display="block";
+document.getElementById("breadcrumb").style.display="block";
+
+const email = localStorage.getItem("email");
+if(email){
+document.getElementById("userLabel").textContent = email;
+}
+
+navigate("home");
+}
+
+
+</script>
+<footer style="background:#2e7d32; color:white; padding:20px; margin-top:40px;">
+
+<div style="max-width:900px; margin:auto; text-align:center;">
+
+<h3>Contacto</h3>
+
+<p>📧 Email: <a href="floreschris0906@gmail.com" style="color:#c8e6c9;">floreschris0906@gmail.com</a></p>
+<p>📱 Tel: <a href="tel:+528121796375" style="color:#c8e6c9;">81 2179 63 75</a></p>
+
+<hr style="margin:15px 0; border-color:#4caf50;">
+
+<h3>Síguenos</h3>
+
+<div style="font-size:18px;">
+
+<a href="https://www.facebook.com/Chris Flores" target="_blank" style="color:white; margin:10px; text-decoration:none;">
+📘 Facebook
+</a>
+
+<a href="https://www.instagram.com/flrss_6" target="_blank" style="color:white; margin:10px; text-decoration:none;">
+📸 Instagram
+</a>
+
+
+<a href="https://www.tiktok.com/@flrss_6" target="_blank" style="color:white; margin:10px; text-decoration:none;">
+🎵 TikTok
+</a>
+
+<a href="https://wa.me/528121796375" target="_blank" style="color:white; margin:10px; text-decoration:none;">
+💬 WhatsApp
+</a>
+
+</div>
+
+<p style="margin-top:15px; font-size:13px; color:#c8e6c9;">
+© 2026 EcoStock - Todos los derechos reservados
+</p>
+
+</div>
+
+</footer>
+</body>
+</html>

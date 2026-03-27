@@ -26,8 +26,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.PASS
   }
 }); 
-const link = `${process.env.BASE_URL}/reset.html?token=${token}`;
-
 
 /* ===== REGISTRO ===== */
 app.post("/register", async (req,res)=>{
